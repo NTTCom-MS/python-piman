@@ -26,7 +26,6 @@ def mkdir_gitkeep(dirname):
     gitkeep = open(dirname+"/.gitkeep","w+")
     gitkeep.close()
 
-# TODO:
 def print_hierarchy_item(item_name, globs, auth_string, write_to=sys.stdout):
     print('  - name: "'+item_name+'"', file=write_to)
     print('    globs:', file=write_to)

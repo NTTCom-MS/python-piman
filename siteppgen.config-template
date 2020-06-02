@@ -75,7 +75,7 @@ resource-name = haproxy::stats
 resource-name = haproxy::backend::http_request_deny
 
 [hbarules]
-resource-name = postgresql::hba_rul
+resource-name = postgresql::hba_rule
 
 [nfsmounts]
 resource-name = nfs::nfsmount

@@ -172,6 +172,11 @@ if __name__ == '__main__':
         pfgen_config = config_dir+'/pfgen.config'
 
     try:
+        skip_pfgen = config.getboolean('piman', 'skip-pfgen')
+    except:
+        skip_pfgen = False
+
+    try:
         hierayaml_config = config.get('piman', 'hierayaml-config')
     except:
         hierayaml_config = config_dir+'/hieragen.config'
@@ -266,6 +271,14 @@ if __name__ == '__main__':
                     enable_puppetboard = config.getboolean('piman', 'enable-puppetboard')
                 except:
                     enable_puppetboard = True
+
+            try:
+                skip_pfgen = config.getboolean(instance, 'skip_pfgen')
+            except:
+                try:
+                    skip_pfgen = config.getboolean('piman', 'skip_pfgen')
+                except:
+                    skip_pfgen = False
 
             #
             # instance repo
@@ -427,12 +440,13 @@ if __name__ == '__main__':
             sh.git.clone(instance_config_remote, config_repo_path, _env={"EMAIL": author_email, "GIT_AUTHOR_NAME": author_name, "GIT_AUTHOR_EMAIL": author_email, "GIT_SSH_COMMAND": "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"})
 
             # Puppetfile
-            if not os.path.isfile(config_repo_path+'/Puppetfile'):
-                if debug:
-                    print(instance+': generating '+config_repo_path+'/Puppetfile')
-                config_repo_puppetfile = open(config_repo_path+'/Puppetfile', "w+")
-                pfgen.generatePuppetfile(config_file=pfgen_config, write_puppetfile_to=config_repo_puppetfile)
-                config_repo_puppetfile.close()
+            if not skip_pfgen:
+                if not os.path.isfile(config_repo_path+'/Puppetfile'):
+                    if debug:
+                        print(instance+': generating '+config_repo_path+'/Puppetfile')
+                    config_repo_puppetfile = open(config_repo_path+'/Puppetfile', "w+")
+                    pfgen.generatePuppetfile(config_file=pfgen_config, write_puppetfile_to=config_repo_puppetfile)
+                    config_repo_puppetfile.close()
 
             # site.pp
             if not os.path.isfile(config_repo_path+'/manifests/site.pp'):
