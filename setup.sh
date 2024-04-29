@@ -1,5 +1,23 @@
 #!/bin/bash
 
+if VERB_INSTALL="$( which apt-get )" 2> /dev/null; then
+ echo "Debian-based"
+ $VERB_INSTALL install -y software-properties-common
+ VERB_ADD_REPO="$(which add-apt-repository)"  2> /dev/null
+ VERB_PACKAGE="$( which dpkg )"  2> /dev/null
+ VERB_PACKAGE_LIST_FLAGS="-l"
+  elif VERB_INSTALL="$( which yum )" 2> /dev/null; then
+ echo "Modern Red Hat-based"
+ VERB_PACKAGE="$( which rpm )"  2> /dev/null
+ VERB_PACKAGE_LIST_FLAGS="-qa"a
+ $VERB_INSTALL install -y yum-utils \
+        device-mapper-persistent-data
+ $VERB_ADD_REPO="$(which  yum-config-manager)""--add-repo" 2> /dev/null
+  else
+ echo "Not suported OS." >&2
+ exit 1
+fi
+
 if [ ! -d /opt/python-piman/.git ];
 then
   echo ">> ERROR: /opt/python-piman is not a repository; please clone piman respistory to /opt/python-piman"
@@ -9,19 +27,16 @@ fi
 cd /opt/python-piman
 git pull origin master
 
-yum install -y yum-utils \
-  device-mapper-persistent-data \
-  lvm2	\
+$VERB_INSTALL install -y lvm2   \
   cowsay
 
-rpm -qa | grep docker-ce > /dev/null 2>&1
+$VERB_PACKAGE $VERB_PACKAGE_LIST_FLAGS | grep docker-ce > /dev/null 2>&1
 if [ "$?" -ne 0 ];
 then
-  yum-config-manager \
-    --add-repo \
+  $VERB_ADD_REPO \
     https://download.docker.com/linux/centos/docker-ce.repo
 
-  yum install docker-ce -y
+  $VERB_INSTALL_PACKAGE install docker-ce -y
 fi
 
 if [ ! -f /etc/docker/daemon.json ];
@@ -54,23 +69,23 @@ then
   chmod +x /usr/local/bin/docker-compose
 fi
 
-rpm -qa | grep ius-release > /dev/null 2>&1
-if [ "$?" -ne 0 ];
-then
-  yum install  https://centos7.iuscommunity.org/ius-release.rpm -y
-fi
+#$VERB_PACKAGE $VERB_PACKAGE_LIST_FLAGS | grep ius-release > /dev/null 2>&1
+#if [ "$?" -ne 0 ];
+#then
+#  $VERB_INSTALL_PACKAGE install  https://centos7.iuscommunity.org/ius-release.rpm -y
+#fi
 
-rpm -qa | grep git2u > /dev/null 2>&1
-if [ "$?" -ne 0 ];
-then
-  yum remove git -y
-  yum install git2u -y
-fi
+#rpm -qa | grep git2u > /dev/null 2>&1
+#if [ "$?" -ne 0 ];
+#then
+#  yum remove git -y
+#  yum install git2u -y
+#fi
 
-rpm -qa | grep python3 > /dev/null 2>&1
+$VERB_PACKAGE $VERB_PACKAGE_LIST_FLAGS  | grep python3 > /dev/null 2>&1
 if [ "$?" -ne 0 ];
 then
-  yum install python3 python3-pip -y
+  $VERB_INSTALL install python3 python3-pip -y
 fi
 
 if [ ! -f /opt/python-piman/requirements.txt ];
